@@ -1,6 +1,8 @@
 import { MissionUtils } from "@woowacourse/mission-utils";
 
 class App {
+  controller;
+
   constructor() {
     this.controller = new Controller();
   }
@@ -12,19 +14,21 @@ class App {
 }
 
 class Game {
+  generator = [];
+
   constructor() {
-    this.generator = this.generateNum();
+    this.generateNum();
   }
 
   generateNum() {
-    const generator = [];
-    while (generator.length < 3) {
+    while (this.generator.length < 3) {
       const number = MissionUtils.Random.pickNumberInRange(1, 9);
-      if (!generator.includes(number)) {
-        generator.push(number);
+      if (!this.generator.includes(number)) {
+        this.generator.push(Number(number));
       }
     }
-    return generator;
+    console.log(this.generator);
+    return this.generator;
   }
 
   async process() {
@@ -67,28 +71,26 @@ class Controller {
   }
 
   async restart() {
-    while (true) {
-      let answer = "";
+    let answer = await this.game.process();
+    MissionUtils.Console.print(answer);
 
-      while (answer !== "3스트라이크") {
-        answer = await this.game.process();
-        await MissionUtils.Console.print(answer);
-      }
-
-      await MissionUtils.Console.print(
-        "3개의 숫자를 모두 맞히셨습니다! 게임 종료"
-      );
+    if (answer === "3스트라이크") {
+      MissionUtils.Console.print("3개의 숫자를 모두 맞히셨습니다! 게임 종료");
 
       const finish = await MissionUtils.Console.readLineAsync(
-        "게임을 새로 시작하려면 1, 종료하려면 2를 입력하세요."
+        "새 게임을 시작하려면 1을, 그만두려면 2를 입력하세요."
       );
 
-      if (finish === "2") {
-        await MissionUtils.Console.print("게임 종료");
-        break;
-      } else {
+      if (finish === "1") {
         this.game = new Game();
+        await this.restart();
+      } else if (finish === "2") {
+        MissionUtils.Console.print("게임이 종료됩니다.");
+      } else {
+        throw new Error();
       }
+    } else {
+      await this.restart();
     }
   }
 }
