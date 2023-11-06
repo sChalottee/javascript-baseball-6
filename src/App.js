@@ -1,14 +1,21 @@
 import { MissionUtils } from "@woowacourse/mission-utils";
 
 class App {
+  constructor() {
+    this.controller = new Controller();
+  }
+
   async play() {
     MissionUtils.Console.print("숫자 야구 게임을 시작합니다.");
-    const controller = new Controller();
-    await controller.restart();
+    await this.controller.restart();
   }
 }
 
 class Game {
+  constructor() {
+    this.generator = this.generateNum();
+  }
+
   generateNum() {
     const generator = [];
     while (generator.length < 3) {
@@ -20,7 +27,7 @@ class Game {
     return generator;
   }
 
-  async process(generator) {
+  async process() {
     let answer = "";
     let strike = 0;
     let ball = 0;
@@ -33,10 +40,10 @@ class Game {
       throw new Error("[ERROR]");
     }
 
-    for (let i = 0; i < generator.length; i++) {
-      if (generator[i] === Number(number[i])) {
+    for (let i = 0; i < this.generator.length; i++) {
+      if (this.generator[i] === Number(number[i])) {
         strike++;
-      } else if (generator.includes(Number(number[i]))) {
+      } else if (this.generator.includes(Number(number[i]))) {
         ball++;
       }
     }
@@ -55,15 +62,16 @@ class Game {
 }
 
 class Controller {
-  async restart() {
-    const game = new Game();
+  constructor() {
+    this.game = new Game();
+  }
 
+  async restart() {
     while (true) {
-      const generator = game.generateNum();
       let answer = "";
 
       while (answer !== "3스트라이크") {
-        answer = await game.process(generator);
+        answer = await this.game.process();
         await MissionUtils.Console.print(answer);
       }
 
@@ -78,6 +86,8 @@ class Controller {
       if (finish === "2") {
         await MissionUtils.Console.print("게임 종료");
         break;
+      } else {
+        this.game = new Game();
       }
     }
   }
